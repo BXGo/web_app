@@ -86,7 +86,7 @@ class BooleanField(Field):
 
 #继承Field类，定义整数类(bigint)，默认值为0
 class IntegerField(Field):
-	def __init__(self, name=None, primary_key=False, default=0)： #可传入参数列名、主键、默认值
+	def __init__(self, name=None, primary_key=False, default=0): #可传入参数列名、主键、默认值
 		super().__init__(name, 'bigint', primary_key, default)
 
 #继承Field类，定义浮点类

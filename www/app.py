@@ -9,7 +9,7 @@ from aiohttp import web
 from jinja2 import Environment, FileSystemLoader
 import orm 
 import config
-from webframe import add_routes
+from webframe import add_routes, add_static
 
 
 async def logger_factory(app, handler):
@@ -18,12 +18,13 @@ async def logger_factory(app, handler):
 		' 记录日志 '
 		logging.info('Request: %s %s' % (request.method, request.path))
 		' 继续处理请求 '
-		return await handler(request)
+		return (await handler(request))
 	return logger
 
 
 async def response_factory(app, handler):
 	async def response(request):
+		logging.info('Response handler')
 		' 对处理函数的响应进行处理 '
 		r = await handler(request)
 		if isinstance(r, web.StreamResponse):
@@ -105,17 +106,16 @@ def datetime_filter(t):
 	if delta < 604800:
 		return u'%s day ago' % (delta // 86400)
 	dt = datetime.fromtimestamp(t)
-	return u'%s - %s - %s' % (dt.year, dt.month, dt.day)
+	return u'%s-%s-%s' % (dt.year, dt.month, dt.day)
 
 
 async def init(loop):
 	' 服务器运行程序：创建web实例程序，该实例程序绑定路由和处理函数，运行服务器，监听端口请求，送到路由处理 '
 	await orm.create_pool(loop=loop, **config.configs.db)
 	app = web.Application(loop=loop, middlewares=[logger_factory, response_factory])
-	add_routes(app, 'handlers')
 	init_jinja2(app, filters=dict(datetime=datetime_filter))
-
-
+	add_routes(app, 'handlers')
+	add_static(app)
 	srv = await loop.create_server(app.make_handler(), '127.0.0.1', 9000)
 	logging.info('Server started at http://127.0.0.1:9000')
 	return srv

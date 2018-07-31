@@ -11,35 +11,7 @@ import orm
 import config
 from webframe import add_routes, add_static
 from models import User
-
-
-_COOKIE_KEY = 'growing up is a gradual separation'
-
-
-async def cookie2user(cookie_str):
-	'''解密cookie'''
-	if not cookie_str:
-		return None
-	try:
-		L = cookie_str.split('-')
-		if len(L) != 3:
-			return None
-		uid, expires, sha1 = L
-		if int(expires) < time.time():
-			# cookie过期
-			return None
-		user = await User.find(uid)
-		if user is None:
-			return None
-		s = '%s-%s-%s-%s' % (uid, user.passwd, expires, _COOKIE_KEY)
-		if sha1 != hashlib.sha1(s.encode('utf-8')).hexdigest():
-			logging.info('invalid sha1')
-			return None
-		user.passwd = '******'
-		return user
-	except Exception as e:
-		logging.exception(e)
-		return None
+from handlers import cookie2user, COOKIE_NAME
 
 
 async def logger_factory(app, handler):
@@ -112,8 +84,8 @@ async def auth_factory(app, handler):
 			if user:
 				logging.info('set current user: %s' % user.email)
 				request.__user__ = user
-			return (await handler(request))
-		return auth
+		return (await handler(request))
+	return auth
 
 
 def init_jinja2(app, **kw):
@@ -157,7 +129,7 @@ def datetime_filter(t):
 async def init(loop):
 	' 服务器运行程序：创建web实例程序，该实例程序绑定路由和处理函数，运行服务器，监听端口请求，送到路由处理 '
 	await orm.create_pool(loop=loop, **config.configs.db)
-	app = web.Application(loop=loop, middlewares=[logger_factory, response_factory])
+	app = web.Application(loop=loop, middlewares=[logger_factory, auth_factory, response_factory])
 	init_jinja2(app, filters=dict(datetime=datetime_filter))
 	add_routes(app, 'handlers')
 	add_static(app)

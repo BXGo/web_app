@@ -8,7 +8,7 @@
 	<link rel="stylesheet" type="text/css" href="/static/css/uikit.gradient.min.css">
 	<link rel="stylesheet" type="text/css" href="/static/css/awesome.css">
 	<script type="text/javascript" src="/static/js/jquery.min.js"></script>
-	<script type="text/javascript" src="/static/js/sha1.js"></script>
+	<script type="text/javascript" src="/static/js/sha1.min.js"></script>
 	<script type="text/javascript" src="/static/js/uikit.min.js"></script>
 	<script type="text/javascript" src="/static/js/awesome.js"></script>
 	<script type="text/javascript" src="/static/js/sticky.min.js"></script>
@@ -18,11 +18,11 @@
 <body>
 	<nav class="uk-navbar uk-navbar-attached uk-margin-bottom">
 		<div class="uk-container uk-container-center">
-			<a href="/" class="uk-navbar-brand">JustoneLab</a>
+			<a href="/" class="uk-navbar-brand"><i class="uk-icon-home"></i>JustoneLab</a>
 			<ul class="uk-navbar-nav">
-				<li data-url="blogs"><a href="/"><i class="uk-icon-home"></i> 日志</a></li>
-				<li><a target="_blank" href="#"><i class="uk-icon-map-signs"></i> 徒步</a></li>
-				<li><a target="_blank" href="#"><i class="uk-icon-paw"></i> 喵</a></li>
+				<li data-url="blogs"><a href="/"><i class=""></i>日志</a></li>
+				<li><a target="_blank" href="#"><i class=""></i>徒步</a></li>
+				<li><a target="_blank" href="#"><i class=""></i>喵</a></li>
 			</ul>
 			<div class="uk-navbar-flip">
 				<ul class="uk-navbar-nav">
@@ -36,8 +36,8 @@
 						</div>
 					</li>
 				{% else %}
-					<li><a href="/signin"><i class="uk-icon-sign-in"></i> 登录</a></li>
-					<li><a href="/register"><i class="uk-icon-edit"></i> 注册</a></li>
+					<li><a href="/signin">登录</a></li>
+					<li><a href="/register">注册</a></li>
 				{% endif %}
 				</ul>
 			</div>
@@ -60,7 +60,6 @@
 				</p>
 				<p>Powered by <a href="#">JustoneLab</a>. Copyright &copy; 2018. [<a href="/manage/" target="_blank">Manage</a>]</p>
 				<p><a href="http://www.justonelab.com/" target="_blank">www.justonelab.com</a>. ALL rights reserved.</p>
-				<a href="_blank" href="#"><i class="uk-icon-html5" style="font-size:64px; color: #444;"></i></a>
 			</div>
 		</div>		
 	</div>

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging; logging.basicConfig(level=logging.INFO)
-import asyncio, os, json, time
+import asyncio, os, json, time, hashlib
 from datetime import datetime
 from aiohttp import web
 
@@ -10,6 +10,36 @@ from jinja2 import Environment, FileSystemLoader
 import orm 
 import config
 from webframe import add_routes, add_static
+from models import User
+
+
+_COOKIE_KEY = 'growing up is a gradual separation'
+
+
+async def cookie2user(cookie_str):
+	'''解密cookie'''
+	if not cookie_str:
+		return None
+	try:
+		L = cookie_str.split('-')
+		if len(L) != 3:
+			return None
+		uid, expires, sha1 = L
+		if int(expires) < time.time():
+			# cookie过期
+			return None
+		user = await User.find(uid)
+		if user is None:
+			return None
+		s = '%s-%s-%s-%s' % (uid, user.passwd, expires, _COOKIE_KEY)
+		if sha1 != hashlib.sha1(s.encode('utf-8')).hexdigest():
+			logging.info('invalid sha1')
+			return None
+		user.passwd = '******'
+		return user
+	except Exception as e:
+		logging.exception(e)
+		return None
 
 
 async def logger_factory(app, handler):
@@ -71,8 +101,23 @@ async def response_factory(app, handler):
 	return response
 
 
+async def auth_factory(app, handler):
+	async def auth(request):
+		'''分析COOKIE，就登录用户绑定到requet对象'''
+		logging.info('check user: %s %s' % (request.method, request.path))
+		request.__user__ = None
+		cookie_str = request.cookies.get(COOKIE_NAME)
+		if cookie_str:
+			user = await cookie2user(cookie_str)
+			if user:
+				logging.info('set current user: %s' % user.email)
+				request.__user__ = user
+			return (await handler(request))
+		return auth
+
+
 def init_jinja2(app, **kw):
-	' 模板引擎初始化 '
+	'''模板引擎初始化'''
 	logging.info('init jinja2')
 	options = dict(
 		autoescape = kw.get('autoescape', True), # 默认打开自动转义 转义字符

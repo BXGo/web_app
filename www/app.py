@@ -47,6 +47,7 @@ async def response_factory(app, handler):
 			return resp #返回HTML
 		if isinstance(r, dict):
 			# 处理字典类响应
+			r['__user__'] = request.__user__
 			template = r.get('__template__')
 			if template is None:
 				# 返回JSON类响应

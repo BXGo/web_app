@@ -9,12 +9,17 @@ from webframe import get, post
 from models import User, Blog, Comment, next_id
 import time, json, hashlib
 import re, logging; logging.basicConfig(level=logging.INFO)
-from apis import APIError, APIValueError
+from apis import APIError, APIValueError, APIPermissionError
 from aiohttp import web
 
 
 COOKIE_NAME = 'jlsession'
 _COOKIE_KEY = 'growing up is a gradual separation'
+
+
+def check_admin(request):
+	if not request.__user__.admin:
+		raise APIPermissionError()
 
 
 def user2cookie(user, max_age):
@@ -87,6 +92,18 @@ def signin():
 	return { '__template__': 'signin.html'}
 
 
+@get('/signout')
+def signout():
+	pass
+
+
+@get('/api/blogs')
+def writeABlog(request):
+	if not request.__user__.admin:
+		raise APIPermissionError()
+	return { '__template__': 'manage_blog_edit.html'}
+
+
 @post('/api/users')
 async def api_register_user(*, email, name, passwd):
 	"""kw var : email, name, passwd"""
@@ -135,3 +152,30 @@ async def authenticate(*, email, passwd):
 	r.content_type = 'application/json'
 	r.body = json.dumps(user, ensure_ascii=False).encode('utf-8') # 转换成JSON格式
 	return r
+
+
+@post('/api/blogs')
+async def api_create_blog(request, *, name, summary, content):
+	'''创建一篇日志'''
+	check_admin(request)
+	if not name or not name.strip():
+		raise APIValueError('name', 'name cannot be empty.')
+	if not summary or not summary.strip():
+		raise APIValueError('summary', 'summary cannot be empty.')
+	if not content or not content.strip():
+		raise APIValueError('content', 'content cannot be empty.')
+	blog = Blog(
+		user_id=request.__user__.id,
+		user_name=request.__user__.name,
+		user_image=request.__user__.image,
+		name=name.strip(),
+		summary=summary.strip(),
+		content=content.strip()
+	)
+	await blog.save()
+	return blog
+
+
+
+
+
